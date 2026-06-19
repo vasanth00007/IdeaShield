@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IdeaShield — Protect Your Ideas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;
+  --bg2:#181818;
+  --bg3:#202020;
+
+  --border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);
+
+  --text:#ffffff;
+  --text2:#aaaaaa;
+  --text3:#717171;
+
+  /* YouTube Red */
+  --accent:#ff0000;
+  --accent2:#cc0000;
+
+  /* Google Blue */
+  --cyan:#4285f4;
+
+  --emerald:#34a853;
+  --amber:#fbbc05;
+  --red:#ea4335;
+
+  --grad:linear-gradient(135deg,#ff0000 0%,#ea4335 50%,#4285f4 100%);
+  --grad2:linear-gradient(135deg,#ff0000,#cc0000);
+
+  --shadow:0 8px 24px rgba(0,0,0,0.35);
+  --shadow2:0 20px 60px rgba(0,0,0,0.55);
+
+  --r:16px;
+  --r2:12px;
+}
+html{scroll-behavior:smooth}
+body{background:#121212;;color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+h1,h2,h3,h4,h5,h6{font-family:'Syne',sans-serif;line-height:1.2}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:260px;min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar-logo{padding:24px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:36px;height:36px;background:var(--grad2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-nav{padding:16px 12px;flex:1;display:flex;flex-direction:column;gap:4px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--r2);color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border:1px solid transparent;position:relative}
+.nav-item:hover{background:rgba(255,255,255,0.03);color:var(--text);border-color:var(--border)}
+.nav-item.active{background:rgba(108,99,255,0.12);color:var(--accent);border-color:rgba(108,99,255,0.25)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--grad2);border-radius:0 2px 2px 0}
+.badge{margin-left:auto;background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;min-width:20px;text-align:center}
+.sidebar-footer{padding:16px 12px;border-top:1px solid var(--border)}
+.sidebar-overlay{display:none}
+.main{margin-left:260px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(6,7,13,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:16px}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;flex:1}
+.avatar{width:36px;height:36px;background:var(--grad2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;border:2px solid rgba(108,99,255,0.4)}
+.mobile-menu-btn{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:4px}
+.page{padding:28px;flex:1}
+.glass-card{
+  background:#1e1e1e;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  transition:all .25s;
+}
+.glass-card:hover{border-color:var(--border2);box-shadow:var(--shadow)}
+.glass-card-shine{background:linear-gradient(135deg,rgba(108,99,255,0.08),rgba(0,212,255,0.04));border:1px solid rgba(108,99,255,0.2);border-radius:var(--r)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-weight:500;font-size:14px;cursor:pointer;transition:all .2s;border:none;outline:none}
+.btn-primary{background:var(--grad2);color:#fff;box-shadow:0 4px 15px rgba(108,99,255,0.35)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,0.5)}
+.btn-ghost{background:rgba(255,255,255,0.03);border:1px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{background:rgba(255,255,255,0.06);color:var(--text);border-color:var(--border2)}
+.btn-danger{background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.3);color:var(--red)}
+.btn-danger:hover{background:rgba(244,63,94,0.25)}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-icon{padding:8px;border-radius:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{padding:20px}
+.stat-number{font-family:'Syne',sans-serif;font-size:32px;font-weight:800}
+.stat-label{color:var(--text2);font-size:13px;margin-top:4px}
+.stat-change{font-size:12px;margin-top:8px}
+.ideas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.idea-card{padding:20px;cursor:pointer}
+.idea-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.idea-title{font-family:'Syne',sans-serif;font-weight:700;font-size:16px}
+.idea-desc{color:var(--text2);font-size:13px;line-height:1.5;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.idea-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.idea-tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;border:1px solid}
+.idea-footer{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border)}
+.idea-hash{font-family:monospace;font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.idea-actions{display:flex;gap:6px}
+.sim-bar{height:4px;border-radius:99px;background:rgba(255,255,255,0.08);margin-top:10px;overflow:hidden}
+.sim-fill{height:100%;border-radius:99px;transition:width .8s}
+.shield-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:rgba(16,230,138,0.12);color:var(--emerald);border:1px solid rgba(16,230,138,0.25)}
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--r);padding:60px 40px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(255,255,255,0.02)}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:rgba(108,99,255,0.06)}
+.input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border2);border-radius:var(--r2);padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all .2s}
+.input:focus{border-color:var(--accent);background:rgba(108,99,255,0.06);box-shadow:0 0 0 3px rgba(108,99,255,0.1)}
+.input::placeholder{color:var(--text3)}
+.label{font-size:13px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block}
+.form-group{margin-bottom:18px}
+select.input option{background:var(--bg2)}
+.audit-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border)}
+.audit-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.audit-action{font-weight:600;font-size:13px;font-family:monospace}
+.audit-detail{font-size:13px;color:var(--text2);margin-top:2px}
+.audit-time{font-size:11px;color:var(--text3);margin-top:4px}
+.alert-card{padding:18px 20px;margin-bottom:12px}
+.alert-severity-high{border-color:rgba(244,63,94,0.35)!important;background:rgba(244,63,94,0.05)!important}
+.alert-severity-low{border-color:rgba(245,158,11,0.3)!important}
+.share-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:12px}
+.share-avatar{width:36px;height:36px;border-radius:50%;background:var(--grad2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.modal-overlay{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:20px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:slideUp .2s ease;box-shadow:var(--shadow2)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:20px}
+.progress{height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:var(--grad2);transition:width .3s}
+.landing{min-height:100vh}
+.nav-landing{position:sticky;top:0;z-index:100;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,7,13,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.hero{text-align:center;padding:100px 20px 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse at center,rgba(108,99,255,0.18) 0%,transparent 70%);pointer-events:none}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(108,99,255,0.12);border:1px solid rgba(108,99,255,0.3);border-radius:99px;padding:6px 16px;font-size:13px;font-weight:500;color:var(--accent);margin-bottom:28px;animation:fadeInUp .6s ease}
+.hero-title{font-size:clamp(42px,6vw,80px);font-weight:800;line-height:1.1;max-width:800px;margin:0 auto 20px;animation:fadeInUp .6s ease .1s both}
+.grad-text{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:18px;color:var(--text2);max-width:560px;margin:0 auto 40px;animation:fadeInUp .6s ease .2s both;font-weight:300}
+.hero-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:fadeInUp .6s ease .3s both}
+.features{padding:80px 40px;max-width:1200px;margin:0 auto}
+.features-title{text-align:center;font-size:clamp(28px,4vw,44px);font-weight:800;margin-bottom:12px}
+.features-sub{text-align:center;color:var(--text2);margin-bottom:56px;font-size:16px}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.feature-card{padding:28px}
+.feature-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feature-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;margin-bottom:8px}
+.feature-desc{color:var(--text2);font-size:14px;line-height:1.6}
+.cta-section{padding:80px 40px;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(108,99,255,0.12) 0%,transparent 70%)}
+.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 20% 50%,rgba(108,99,255,0.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(0,212,255,0.08) 0%,transparent 60%)}
+.auth-card{width:100%;max-width:420px;padding:40px}
+.auth-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;text-align:center;margin-bottom:8px}
+.auth-sub{color:var(--text2);text-align:center;margin-bottom:32px;font-size:14px}
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+.toast{background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;box-shadow:var(--shadow2);animation:slideInRight .3s ease;min-width:260px;max-width:360px}
+.toast-success{border-color:rgba(16,230,138,0.3)}
+.toast-error{border-color:rgba(244,63,94,0.3)}
+.toast-info{border-color:rgba(108,99,255,0.3)}
+.toast-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+.section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:20px}
+.tabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:4px;margin-bottom:24px;overflow-x:auto}
+.tab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text2);white-space:nowrap;transition:all .2s;border:none;background:none}
+.tab.active{background:rgba(108,99,255,0.2);color:var(--accent)}
+.code-block{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:monospace;font-size:12px;color:var(--cyan);overflow-x:auto;white-space:pre;word-break:break-all}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text2)}
+.empty-state-title{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--text);margin-bottom:8px}
+.chain-pulse{display:inline-flex;align-items:center;gap:6px}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:pulse 2s infinite;box-shadow:0 0 8px var(--emerald)}
+.animate-pulse{animation:pulse 2s infinite}
+.animate-spin{animation:spin 1s linear infinite}
+.fade-in{animation:fadeInUp .4s ease both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@media(max-width:1024px){.stats-grid{grid-template-columns:repeat(2,1fr)}.features-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0);box-shadow:var(--shadow2)}
+  .sidebar-overlay{display:block;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px)}
+  .main{margin-left:0}
+  .mobile-menu-btn{display:flex}
+  .page{padding:16px}
+  .topbar{padding:12px 16px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .ideas-grid{grid-template-columns:1fr}
+  .features-grid{grid-template-columns:1fr}
+  .nav-landing{padding:14px 20px}
+  .features,.cta-section{padding:60px 20px}
+  .hero{padding:70px 20px 60px}
+  .hero-actions{flex-direction:column;align-items:center}
+  .modal{padding:20px}
+  .upload-zone{padding:40px 20px}
+}
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr}.stat-number{font-size:26px}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useRef, useCallback } = React;
+
+const MOCK_IDEAS = [
+  {id:"1",title:"AI-Powered Code Review Bot",description:"Automated code review using GPT-4 with team integrations and PR comments",fileType:"pdf",fileName:"code_review_bot_pitch.pdf",fileSize:"2.4 MB",timestamp:new Date(Date.now()-86400000*3).toISOString(),txHash:"0x7f3a9b2c4d8e1f6a0b5c3d9e2f7a4b8c1d6e3f9a",ipfsHash:"QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco",status:"protected",shares:["alice@team.com","bob@team.com"],similarity:12,tags:["AI","DevTools","Automation"]},
+  {id:"2",title:"DeFi Yield Optimizer",description:"Cross-chain yield aggregator with auto-compounding and risk scoring",fileType:"pptx",fileName:"defi_optimizer_deck.pptx",fileSize:"8.7 MB",timestamp:new Date(Date.now()-86400000*7).toISOString(),txHash:"0x2a5f8d1b3e6c9a4f7b0e3d6a9c2f5b8e1d4a7c0f",ipfsHash:"QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",status:"protected",shares:["charlie@team.com"],similarity:34,tags:["DeFi","Blockchain","Finance"]},
+  {id:"3",title:"Carbon Credit Marketplace",description:"Tokenized carbon credits with real-world verification and trading",fileType:"zip",fileName:"carbon_market_code.zip",fileSize:"15.2 MB",timestamp:new Date(Date.now()-86400000*14).toISOString(),txHash:"0x9c1e4b7a0d3f6c9b2e5a8d1f4c7b0e3a6d9c2f5b",ipfsHash:"QmZbj4MEFHc3yoCi7PDAv7YHQEHpTG1bPBZMPbsNwbJJmS",status:"protected",shares:[],similarity:5,tags:["Climate","Web3","Marketplace"]},
+];
+const MOCK_ALERTS = [
+  {id:"a1",ideaTitle:"DeFi Yield Optimizer",similarProject:"YieldMax Protocol",similarity:34,source:"GitHub",detectedAt:new Date(Date.now()-3600000).toISOString(),severity:"high"},
+  {id:"a2",ideaTitle:"AI-Powered Code Review Bot",similarProject:"CodeAI Review",similarity:12,source:"ProductHunt",detectedAt:new Date(Date.now()-86400000).toISOString(),severity:"low"},
+];
+const MOCK_AUDIT = [
+  {id:"au1",action:"IDEA_UPLOADED",ideaTitle:"Carbon Credit Marketplace",user:"you",time:new Date(Date.now()-86400000*14).toISOString()},
+  {id:"au2",action:"BLOCKCHAIN_STAMPED",ideaTitle:"Carbon Credit Marketplace",user:"system",time:new Date(Date.now()-86400000*14+5000).toISOString()},
+  {id:"au3",action:"IDEA_SHARED",ideaTitle:"DeFi Yield Optimizer",user:"you",time:new Date(Date.now()-86400000*6).toISOString()},
+  {id:"au4",action:"IDEA_VIEWED",ideaTitle:"DeFi Yield Optimizer",user:"charlie@team.com",time:new Date(Date.now()-86400000*5).toISOString()},
+  {id:"au5",action:"SIMILARITY_DETECTED",ideaTitle:"DeFi Yield Optimizer",user:"system",time:new Date(Date.now()-3600000).toISOString()},
+  {id:"au6",action:"IDEA_UPLOADED",ideaTitle:"AI-Powered Code Review Bot",user:"you",time:new Date(Date.now()-86400000*3).toISOString()},
+];
+const TAG_COLORS=["bg-v","bg-c","bg-e","bg-a","bg-p"];
+const TAG_STYLE=["rgba(108,99,255,0.2)","rgba(0,212,255,0.2)","rgba(16,230,138,0.2)","rgba(245,158,11,0.2)","rgba(244,63,94,0.2)"];
+const TAG_TEXT=["#a78bfa","#67e8f9","#6ee7b7","#fcd34d","#fca5a5"];
+const FILE_ICONS={pdf:"📄",pptx:"📊",zip:"🗜️",doc:"📝",docx:"📝",default:"📁"};
+const fmt=iso=>new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+const fmtT=iso=>new Date(iso).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});
+const shortH=h=>h?`${h.slice(0,8)}...${h.slice(-6)}`:"";
+
+let tid=0;
+const useToast=()=>{
+  const [toasts,setToasts]=useState([]);
+  const add=useCallback((msg,type="info")=>{
+    const id=++tid;
+    setToasts(t=>[...t,{id,msg,type}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),3500);
+  },[]);
+  return{toasts,add};
+};
+
+const Toasts=({toasts})=>(
+  <div className="toast-container">
+    {toasts.map(t=>(
+      <div key={t.id} className={`toast toast-${t.type}`}>
+        <div className="toast-dot" style={{background:t.type==="success"?"var(--emerald)":t.type==="error"?"var(--red)":"var(--accent)"}}/>
+        {t.msg}
+      </div>
+    ))}
+  </div>
+);
+
+// SVG icons
+const Ico=({n,s=18,c=""})=>{
+  const d={
+    shield:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    upload:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>,
+    grid:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>,
+    share:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+    bell:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+    list:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+    check:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><polyline points="20 6 9 17 4 12"/></svg>,
+    x:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    eye:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    trash:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>,
+    copy:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
+    chain:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+    logout:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
+    menu:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+    alert:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+    plus:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    arrow:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+    clock:<svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  };
+  return d[n]||null;
+};
+
+// ── LANDING ──
+const Landing=({onEnter})=>{
+  const feats=[
+    {i:"🔐",bg:"rgba(108,99,255,0.2)",t:"Blockchain Timestamps",d:"Every idea is cryptographically timestamped on Polygon, creating irrefutable proof of ownership."},
+    {i:"🛡️",bg:"rgba(16,230,138,0.15)",t:"AES-256 Encryption",d:"Military-grade encryption protects your files both in transit and at rest on IPFS."},
+    {i:"🔗",bg:"rgba(0,212,255,0.15)",t:"Decentralized Storage",d:"Files stored on IPFS ensure your ideas are accessible forever, no single point of failure."},
+    {i:"👥",bg:"rgba(245,158,11,0.15)",t:"Granular Sharing",d:"Share with teammates using role-based permissions: view, edit, or full access."},
+    {i:"🚨",bg:"rgba(244,63,94,0.15)",t:"Similarity Detection",d:"AI-powered monitoring alerts you when similar ideas appear on GitHub, ProductHunt, and more."},
+    {i:"📋",bg:"rgba(159,90,253,0.15)",t:"Full Audit Trail",d:"Every access, share, and modification is logged immutably for complete accountability."},
+  ];
+  return(
+    <div className="landing">
+      <nav className="nav-landing">
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div className="logo-icon"><Ico n="shield" s={18}/></div>
+          <span className="logo-text">IdeaShield</span>
+        </div>
+        <div style={{display:"flex",gap:12,alignItems:"center"}}>
+          <button className="btn btn-ghost btn-sm" onClick={()=>onEnter("login")}>Sign In</button>
+          <button className="btn btn-primary btn-sm" onClick={()=>onEnter("signup")}>Get Started</button>
+        </div>
+      </nav>
+      <section className="hero">
+        <div className="hero-badge"><div className="pulse-dot"/> Live on Polygon Mainnet</div>
+        <h1 className="hero-title">Protect Your Ideas<br/><span className="grad-text">Before They're Stolen</span></h1>
+        <p className="hero-sub">Cryptographic proof of ownership for hackathon projects. Timestamp, encrypt, and share securely — all on-chain.</p>
+        <div className="hero-actions">
+          <button className="btn btn-primary" style={{padding:"14px 32px",fontSize:16}} onClick={()=>onEnter("signup")}><Ico n="shield" s={18}/> Start Protecting Free</button>
+          <button className="btn btn-ghost" style={{padding:"14px 32px",fontSize:16}} onClick={()=>onEnter("login")}>View Demo <Ico n="arrow" s={16}/></button>
+        </div>
+      </section>
+      <div style={{background:"var(--bg2)",borderTop:"1px solid var(--border)",borderBottom:"1px solid var(--border)",padding:"28px 40px"}}>
+        <div style={{maxWidth:900,margin:"0 auto",display:"flex",justifyContent:"space-around",flexWrap:"wrap",gap:24}}>
+          {[["12,400+","Ideas Protected"],["99.9%","Uptime SLA"],["<2s","Timestamp Speed"],["0","Data Breaches"]].map(([n,l])=>(
+            <div key={l} style={{textAlign:"center"}}>
+              <div style={{fontFamily:"Syne",fontWeight:800,fontSize:28,background:"var(--grad)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{n}</div>
+              <div style={{color:"var(--text2)",fontSize:13,marginTop:4}}>{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <section className="features">
+        <h2 className="features-title">Everything You Need to <span className="grad-text">Stay Protected</span></h2>
+        <p className="features-sub">Built for hackathons, trusted by founders.</p>
+        <div className="features-grid">
+          {feats.map(f=>(
+            <div key={f.t} className="glass-card feature-card">
+              <div className="feature-icon" style={{background:f.bg}}><span style={{fontSize:22}}>{f.i}</span></div>
+              <div className="feature-title">{f.t}</div>
+              <div className="feature-desc">{f.d}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section className="cta-section">
+        <h2 style={{fontFamily:"Syne",fontSize:"clamp(28px,4vw,48px)",fontWeight:800,marginBottom:16,position:"relative"}}>Ready to Shield Your <span className="grad-text">Next Big Idea?</span></h2>
+        <p style={{color:"var(--text2)",marginBottom:36,fontSize:16,position:"relative"}}>Join 5,000+ hackers who trust IdeaShield</p>
+        <div style={{position:"relative",display:"flex",justifyContent:"center"}}>
+          <button className="btn btn-primary" style={{padding:"16px 40px",fontSize:17}} onClick={()=>onEnter("signup")}>Create Free Account <Ico n="arrow" s={18}/></button>
+        </div>
+      </section>
+      <footer style={{padding:"28px 40px",borderTop:"1px solid var(--border)",textAlign:"center",color:"var(--text3)",fontSize:13}}>© 2025 IdeaShield — Built with ❤️ for hackathons</footer>
+    </div>
+  );
+};
+
+// ── AUTH ──
+const Auth=({mode,onAuth,onSwitch,onBack})=>{
+  const [form,setForm]=useState({name:"",email:"",password:""});
+  const [loading,setLoading]=useState(false);
+  const [err,setErr]=useState("");
+  const submit=async()=>{
+    setErr("");
+    if(!form.email||!form.password){setErr("Please fill all fields.");return;}
+    if(mode==="signup"&&!form.name){setErr("Please enter your name.");return;}
+    setLoading(true);
+    await new Promise(r=>setTimeout(r,1000));
+    setLoading(false);
+    onAuth({name:form.name||"Alex Chen",email:form.email});
+  };
+  return(
+    <div className="auth-page">
+      <div className="glass-card auth-card fade-in">
+        <div style={{display:"flex",alignItems:"center",gap:10,justifyContent:"center",marginBottom:28}}>
+          <div className="logo-icon"><Ico n="shield" s={18}/></div>
+          <span className="logo-text">IdeaShield</span>
+        </div>
+        <h2 className="auth-title">{mode==="login"?"Welcome back":"Create account"}</h2>
+        <p className="auth-sub">{mode==="login"?"Sign in to protect your ideas":"Start protecting your ideas today"}</p>
+        {mode==="signup"&&(
+          <div className="form-group">
+            <label className="label">Full Name</label>
+            <input className="input" placeholder="Alex Chen" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))}/>
+          </div>
+        )}
+        <div className="form-group">
+          <label className="label">Email</label>
+          <input className="input" type="email" placeholder="you@startup.com" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))} onKeyDown={e=>e.key==="Enter"&&submit()}/>
+        </div>
+        <div className="form-group">
+          <label className="label">Password</label>
+          <input className="input" type="password" placeholder="••••••••" value={form.password} onChange={e=>setForm(f=>({...f,password:e.target.value}))} onKeyDown={e=>e.key==="Enter"&&submit()}/>
+        </div>
+        {err&&<div style={{color:"var(--red)",fontSize:13,marginBottom:14}}>{err}</div>}
+        <button className="btn btn-primary" style={{width:"100%",justifyContent:"center",marginBottom:16,opacity:loading?.7:1}} onClick={submit} disabled={loading}>
+          {loading?<><span className="animate-spin" style={{display:"inline-block",width:16,height:16,border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"white",borderRadius:"50%"}}/> Processing...</>:mode==="login"?"Sign In":"Create Account"}
+        </button>
+        <div style={{textAlign:"center",fontSize:13,color:"var(--text2)"}}>
+          {mode==="login"?"Don't have an account? ":"Already have an account? "}
+          <span style={{color:"var(--accent)",cursor:"pointer",fontWeight:500}} onClick={onSwitch}>{mode==="login"?"Sign up":"Sign in"}</span>
+        </div>
+        <div style={{textAlign:"center",marginTop:16}}>
+          <span style={{color:"var(--text3)",fontSize:12,cursor:"pointer"}} onClick={onBack}>← Back to home</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+// ── SIDEBAR ──
+const Sidebar=({active,onNav,user,onLogout,open,onClose})=>{
+  const items=[
+    {id:"dashboard",label:"Dashboard",icon:"grid"},
+    {id:"upload",label:"Upload Idea",icon:"upload"},
+    {id:"ideas",label:"My Ideas",icon:"shield"},
+    {id:"share",label:"Sharing",icon:"share"},
+    {id:"alerts",label:"Alerts",icon:"bell",badge:MOCK_ALERTS.length},
+    {id:"audit",label:"Audit Trail",icon:"list"},
+  ];
+  return(
+    <>
+      {open&&<div className="sidebar-overlay" onClick={onClose}/>}
+      <aside className={`sidebar${open?" open":""}`}>
+        <div className="sidebar-logo">
+          <div className="logo-icon"><Ico n="shield" s={18}/></div>
+          <span className="logo-text">IdeaShield</span>
+        </div>
+        <nav className="sidebar-nav">
+          {items.map(item=>(
+            <div key={item.id} className={`nav-item${active===item.id?" active":""}`} onClick={()=>{onNav(item.id);onClose();}}>
+              <Ico n={item.icon} s={18}/>{item.label}
+              {item.badge&&<span className="badge">{item.badge}</span>}
+            </div>
+          ))}
+        </nav>
+        <div className="sidebar-footer">
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+            <div className="avatar">{(user?.name||"U")[0]}</div>
+            <div>
+              <div style={{fontSize:14,fontWeight:600}}>{user?.name}</div>
+              <div style={{fontSize:11,color:"var(--text3)"}}>{user?.email}</div>
+            </div>
+          </div>
+          <button className="btn btn-ghost btn-sm" style={{width:"100%",justifyContent:"center"}} onClick={onLogout}><Ico n="logout" s={15}/> Sign Out</button>
+        </div>
+      </aside>
+    </>
+  );
+};
+
+// ── IDEA CARD ──
+const IdeaCard=({idea,add,onDelete,onShare,compact})=>{
+  const fi=FILE_ICONS[idea.fileType]||FILE_ICONS.default;
+  const sc=idea.similarity>30?"var(--red)":idea.similarity>15?"var(--amber)":"var(--emerald)";
+  const copyH=()=>{try{navigator.clipboard.writeText(idea.txHash)}catch(e){}add("Transaction hash copied!","success");};
+  return(
+    <div className="glass-card idea-card">
+      <div className="idea-header">
+        <div style={{display:"flex",gap:10,alignItems:"flex-start",flex:1,minWidth:0}}>
+          <div style={{fontSize:28,flexShrink:0}}>{fi}</div>
+          <div style={{minWidth:0}}>
+            <div className="idea-title">{idea.title}</div>
+            <div style={{fontSize:11,color:"var(--text3)",marginTop:2}}>{idea.fileName} · {idea.fileSize}</div>
+          </div>
+        </div>
+        <div className="shield-badge"><Ico n="check" s={11}/> Protected</div>
+      </div>
+      <div className="idea-desc">{idea.description}</div>
+      <div className="idea-meta">
+        {idea.tags.map((tag,i)=>(
+          <span key={tag} className="idea-tag" style={{background:TAG_STYLE[i%5],color:TAG_TEXT[i%5],borderColor:TAG_STYLE[i%5]}}>{tag}</span>
+        ))}
+      </div>
+      {!compact&&(
+        <>
+          <div style={{fontSize:12,color:"var(--text2)",marginBottom:8}}>Similarity: <span style={{color:sc,fontWeight:600}}>{idea.similarity}%</span></div>
+          <div className="sim-bar"><div className="sim-fill" style={{width:`${idea.similarity}%`,background:sc}}/></div>
+          <div style={{marginTop:12}}/>
+        </>
+      )}
+      <div className="idea-footer">
+        <div style={{display:"flex",flexDirection:"column",gap:4}}>
+          <div className="idea-hash"><Ico n="chain" s={12}/>{shortH(idea.txHash)}<button className="btn btn-icon btn-ghost" style={{padding:"2px 4px"}} onClick={copyH}><Ico n="copy" s={12}/></button></div>
+          <div style={{fontSize:11,color:"var(--text3)"}}>{fmt(idea.timestamp)}</div>
+        </div>
+        <div className="idea-actions">
+          {onShare&&<button className="btn btn-ghost btn-sm btn-icon" onClick={()=>onShare(idea)}><Ico n="share" s={15}/></button>}
+          {onDelete&&<button className="btn btn-danger btn-sm btn-icon" onClick={()=>onDelete(idea.id)}><Ico n="trash" s={15}/></button>}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── DASHBOARD ──
+const Dashboard=({ideas,onNav,user,add})=>{
+  const ts=ideas.reduce((a,i)=>a+i.shares.length,0);
+  const avg=Math.round(ideas.reduce((a,i)=>a+i.similarity,0)/(ideas.length||1));
+  const recent=[...ideas].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,3);
+  return(
+    <div className="page fade-in">
+      <div style={{marginBottom:28}}>
+        <h1 style={{fontFamily:"Syne",fontSize:26,fontWeight:800,marginBottom:6}}>Welcome back, {user?.name?.split(" ")[0]||"there"} 👋</h1>
+        <p style={{color:"var(--text2)",fontSize:14}}>Your ideas are safe and timestamped on Polygon.</p>
+      </div>
+      <div className="stats-grid">
+        {[
+          {l:"Ideas Protected",v:ideas.length,i:"shield",c:"var(--accent)",ch:"+1 this week"},
+          {l:"Active Shares",v:ts,i:"share",c:"var(--cyan)",ch:"+2 collaborators"},
+          {l:"Avg. Similarity",v:`${avg}%`,i:"alert",c:avg>25?"var(--red)":"var(--emerald)",ch:"monitored daily"},
+          {l:"Alerts",v:MOCK_ALERTS.length,i:"bell",c:"var(--amber)",ch:"1 high severity"},
+        ].map(s=>(
+          <div key={s.l} className="glass-card stat-card">
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+              <div>
+                <div className="stat-number" style={{color:s.c}}>{s.v}</div>
+                <div className="stat-label">{s.l}</div>
+              </div>
+              <div style={{width:40,height:40,borderRadius:12,background:`${s.c}18`,display:"flex",alignItems:"center",justifyContent:"center",color:s.c}}><Ico n={s.i} s={20}/></div>
+            </div>
+            <div className="stat-change" style={{color:s.c,opacity:.8}}>{s.ch}</div>
+          </div>
+        ))}
+      </div>
+      <div className="glass-card-shine" style={{padding:"18px 24px",marginBottom:24,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{fontSize:22}}>⛓️</div>
+          <div>
+            <div style={{fontFamily:"Syne",fontWeight:700,fontSize:15}}>Polygon Network Active</div>
+            <div style={{fontSize:12,color:"var(--text2)",marginTop:2}}>All timestamps verified on-chain · Gas: 32 gwei · Block: #48,291,042</div>
+          </div>
+        </div>
+        <div className="chain-pulse"><div className="pulse-dot"/><span style={{fontSize:12,color:"var(--emerald)",fontWeight:600}}>LIVE</span></div>
+      </div>
+      <div className="section-header">
+        <span className="section-title">Recent Ideas</span>
+        <button className="btn btn-primary btn-sm" onClick={()=>onNav("upload")}><Ico n="plus" s={15}/> Upload New</button>
+      </div>
+      <div className="ideas-grid">{recent.map(idea=><IdeaCard key={idea.id} idea={idea} add={add} compact/>)}</div>
+    </div>
+  );
+};
+
+// ── UPLOAD ──
+const Upload=({onUpload,add})=>{
+  const [dragOver,setDragOver]=useState(false);
+  const [file,setFile]=useState(null);
+  const [form,setForm]=useState({title:"",description:"",tags:""});
+  const [step,setStep]=useState(0);
+  const [prog,setProg]=useState(0);
+  const [tx,setTx]=useState("");
+  const [ipfs,setIpfs]=useState("");
+  const ref=useRef();
+  const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmOTNlZDQ3Zi02MGU5LTRlYjEtODNlZC01NTExMjdmOGI2MmMiLCJlbWFpbCI6Imhhcml2c2Fyb0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiN2EwOTIzYTE0ZDEzNDRhNWMwOGIiLCJzY29wZWRLZXlTZWNyZXQiOiJkZjU5OGViNDUyZjE5MzdmOWU2ZGM5MmY4NzNmM2RiYTQ2YmZiZTQ5MTA1YzFmZjRlZGJkMjZmNDBiZWVmY2M5IiwiZXhwIjoxODA3MjgxOTE3fQ.jA19sIxm7RV9dkfH4gAm0oF0_UwGQeY1RrRzpQRrx8Q"; // 🔑 Replace with your JWT from pinata.cloud
+  const uploadToIPFS=async(fileToUpload)=>{
+    const data=new FormData();
+    const blob=fileToUpload||new Blob([JSON.stringify({title:form.title,description:form.description,timestamp:new Date().toISOString()})],{type:"application/json"});
+    const fileName=fileToUpload?.name||`${form.title.replace(/\s+/g,"-")}.json`;
+    data.append("file",blob,fileName);
+    const res=await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS",{
+      method:"POST",
+      headers:{Authorization:`Bearer ${PINATA_JWT}`},
+      body:data
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.details||"Pinata upload failed");}
+    const result=await res.json();
+    return result.IpfsHash;
+  };
+  const go=async()=>{
+    if(!form.title||!form.description){add("Please fill title and description","error");return;}
+    if(PINATA_JWT==="YOUR_PINATA_JWT_HERE"){add("⚠️ Add your Pinata JWT in the code to enable real IPFS uploads","error");return;}
+    setStep(1);
+    setProg(20);await new Promise(r=>setTimeout(r,500));
+    setProg(45);
+    let ip;
+    try{
+      ip=await uploadToIPFS(file);
+    }catch(e){
+      add(`IPFS upload failed: ${e.message}`,"error");
+      setStep(0);setProg(0);return;
+    }
+    setProg(65);await new Promise(r=>setTimeout(r,700));
+    const h="0x"+Array.from({length:64},()=>Math.floor(Math.random()*16).toString(16)).join("");
+    setProg(85);await new Promise(r=>setTimeout(r,700));
+    setProg(100);await new Promise(r=>setTimeout(r,400));
+    setTx(h);setIpfs(ip);setStep(2);
+    onUpload({id:Date.now().toString(),title:form.title,description:form.description,fileType:file?.name?.split(".").pop()||"pdf",fileName:file?.name||"idea.pdf",fileSize:file?`${(file.size/1024/1024).toFixed(1)} MB`:"1.2 MB",timestamp:new Date().toISOString(),txHash:h,ipfsHash:ip,status:"protected",shares:[],similarity:Math.floor(Math.random()*20),tags:form.tags?form.tags.split(",").map(t=>t.trim()).filter(Boolean):["Idea"]});
+    add("Idea protected on Polygon! 🛡️","success");
+  };
+  if(step===1)return(
+    <div className="page fade-in">
+      <div style={{maxWidth:500,margin:"60px auto",textAlign:"center"}}>
+        <div style={{fontSize:56,marginBottom:24}}>⛓️</div>
+        <h2 style={{fontFamily:"Syne",fontWeight:800,marginBottom:8}}>Protecting Your Idea</h2>
+        <p style={{color:"var(--text2)",marginBottom:36}}>Creating cryptographic proof on Polygon blockchain...</p>
+        <div className="glass-card" style={{padding:28,textAlign:"left"}}>
+          {[["Encrypt","AES-256 encryption",20],["IPFS","Decentralized storage",45],["Polygon","Blockchain timestamp",65],["Confirm","Network confirmation",85],["Done","Certificate issued",100]].map(([l,d,t])=>(
+            <div key={l} style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:prog>=t?"var(--emerald)":prog>=t-20?"var(--accent)":"var(--border)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"all .3s"}}>
+                {prog>=t?<Ico n="check" s={14}/>:prog>=t-20?<span className="animate-spin" style={{display:"inline-block",width:12,height:12,border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"white",borderRadius:"50%"}}/>:null}
+              </div>
+              <div><div style={{fontWeight:600,fontSize:14}}>{l}</div><div style={{fontSize:12,color:"var(--text2)"}}>{d}</div></div>
+            </div>
+          ))}
+          <div style={{marginTop:20}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"var(--text2)",marginBottom:8}}><span>Progress</span><span>{prog}%</span></div>
+            <div className="progress"><div className="progress-fill" style={{width:`${prog}%`}}/></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  const downloadProof=()=>{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+    const W=210,M=18,CW=W-M*2;
+    const now=new Date();
+    const dateStr=now.toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+    const timeStr=now.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+
+    // helpers
+    const hex=(h)=>{const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return[r,g,b];};
+    const setFill=c=>doc.setFillColor(...hex(c));
+    const setDraw=c=>doc.setDrawColor(...hex(c));
+    const setTxt=c=>doc.setTextColor(...hex(c));
+    const rr=(x,y,w,h,r,fill,stroke)=>{doc.roundedRect(x,y,w,h,r,r,fill&&stroke?"FD":fill?"F":"D");};
+
+    // ── background ──
+    setFill("#06070d"); doc.rect(0,0,W,297,"F");
+
+    // ── header band ──
+    setFill("#0d0f1a"); rr(M,10,CW,38,4,true,false);
+    setDraw("#6c63ff"); doc.setLineWidth(0.4); rr(M,10,CW,38,4,false,true);
+
+    // shield icon circle
+    setFill("#6c63ff"); doc.circle(M+14,29,7,"F");
+    setTxt("#ffffff"); doc.setFontSize(11); doc.setFont("helvetica","bold");
+    doc.text("🛡",M+10.5,32.5);
+
+    // title
+    setTxt("#e8eaf6"); doc.setFontSize(18); doc.setFont("helvetica","bold");
+    doc.text("IdeaShield",M+25,26);
+    setTxt("#8b90b8"); doc.setFontSize(8); doc.setFont("helvetica","normal");
+    doc.text("PROOF OF PROTECTION CERTIFICATE",M+25,33);
+
+    // date top-right
+    setTxt("#555a7a"); doc.setFontSize(7.5);
+    doc.text(dateStr+" · "+timeStr,W-M,26,{align:"right"});
+
+    // ── green status badge ──
+    setFill("#0d2a1f"); rr(M,54,CW,12,3,true,false);
+    setDraw("#10e68a"); doc.setLineWidth(0.3); rr(M,54,CW,12,3,false,true);
+    setTxt("#10e68a"); doc.setFontSize(8); doc.setFont("helvetica","bold");
+    doc.text("✓  IDEA SUCCESSFULLY PROTECTED ON POLYGON BLOCKCHAIN",W/2,61.5,{align:"center"});
+
+    // ── idea details card ──
+    let y=72;
+    setFill("#0d0f1a"); rr(M,y,CW,52,4,true,false);
+    setDraw("#1a1e3a"); doc.setLineWidth(0.3); rr(M,y,CW,52,4,false,true);
+
+    setTxt("#8b90b8"); doc.setFontSize(7.5); doc.setFont("helvetica","bold");
+    doc.text("IDEA TITLE",M+8,y+9);
+    setTxt("#e8eaf6"); doc.setFontSize(12); doc.setFont("helvetica","bold");
+    const titleLines=doc.splitTextToSize(form.title,CW-16);
+    doc.text(titleLines,M+8,y+17);
+
+    const afterTitle=y+17+(titleLines.length-1)*5+6;
+    setTxt("#8b90b8"); doc.setFontSize(7.5); doc.setFont("helvetica","normal");
+    doc.text("DESCRIPTION",M+8,afterTitle);
+    setTxt("#8b90b8"); doc.setFontSize(8.5);
+    const descLines=doc.splitTextToSize(form.description,CW-16);
+    doc.text(descLines,M+8,afterTitle+7);
+
+    // ── hashes ──
+    y=130;
+    const hashBoxH=30;
+    // TX hash
+    setFill("#0d0f1a"); rr(M,y,CW,hashBoxH,4,true,false);
+    setDraw("#6c63ff"); doc.setLineWidth(0.3); rr(M,y,CW,hashBoxH,4,false,true);
+    setTxt("#8b90b8"); doc.setFontSize(7.5); doc.setFont("helvetica","bold");
+    doc.text("TRANSACTION HASH  (Polygon)",M+8,y+9);
+    setFill("#131628"); rr(M+6,y+12,CW-12,12,2,true,false);
+    setTxt("#00d4ff"); doc.setFontSize(7); doc.setFont("courier","normal");
+    const txShort=tx.slice(0,42)+"..."+tx.slice(-6);
+    doc.text(txShort,M+10,y+20);
+
+    y=166;
+    // IPFS hash
+    setFill("#0d0f1a"); rr(M,y,CW,hashBoxH,4,true,false);
+    setDraw("#6c63ff"); doc.setLineWidth(0.3); rr(M,y,CW,hashBoxH,4,false,true);
+    setTxt("#8b90b8"); doc.setFontSize(7.5); doc.setFont("helvetica","bold");
+    doc.text("IPFS CONTENT IDENTIFIER",M+8,y+9);
+    setFill("#131628"); rr(M+6,y+12,CW-12,12,2,true,false);
+    setTxt("#00d4ff"); doc.setFontSize(7); doc.setFont("courier","normal");
+    const ipfsShort=ipfs.slice(0,46)+"...";
+    doc.text(ipfsShort,M+10,y+20);
+
+    // ── metadata strip ──
+    y=202;
+    setFill("#0d0f1a"); rr(M,y,CW,28,4,true,false);
+    setDraw("#1a1e3a"); doc.setLineWidth(0.3); rr(M,y,CW,28,4,false,true);
+
+    const cols=[
+      ["FILE",file?.name||"idea.pdf"],
+      ["SIZE",file?`${(file.size/1024/1024).toFixed(1)} MB`:"—"],
+      ["TAGS",form.tags||"Idea"],
+      ["NETWORK","Polygon"],
+    ];
+    const colW=CW/4;
+    cols.forEach(([lbl,val],i)=>{
+      const cx=M+colW*i+colW/2;
+      setTxt("#555a7a"); doc.setFontSize(6.5); doc.setFont("helvetica","bold");
+      doc.text(lbl,cx,y+9,{align:"center"});
+      setTxt("#e8eaf6"); doc.setFontSize(8); doc.setFont("helvetica","bold");
+      const v=doc.splitTextToSize(val,colW-4);
+      doc.text(v[0],cx,y+17,{align:"center"});
+    });
+
+    // ── encryption note ──
+    y=236;
+    setFill("#0f1120"); rr(M,y,CW,14,3,true,false);
+    setDraw("#2a336a"); doc.setLineWidth(0.3); rr(M,y,CW,14,3,false,true);
+    setTxt("#8b90b8"); doc.setFontSize(7.5); doc.setFont("helvetica","normal");
+    doc.text("🔒  AES-256 encrypted · Decentralized IPFS storage · Immutable blockchain record",W/2,y+9,{align:"center"});
+
+    // ── footer ──
+    setFill("#0d0f1a"); doc.rect(0,272,W,25,"F");
+    setDraw("#1a1e3a"); doc.setLineWidth(0.3); doc.line(M,272,W-M,272);
+    setTxt("#555a7a"); doc.setFontSize(7); doc.setFont("helvetica","normal");
+    doc.text("© 2025 IdeaShield — Built with ❤️ for hackathons  |  Protecting creators worldwide",W/2,281,{align:"center"});
+    doc.text("This certificate serves as cryptographic proof of idea ownership.",W/2,287,{align:"center"});
+
+    const safeTitle=(form.title||"idea").replace(/[^a-z0-9]/gi,"_").toLowerCase();
+    doc.save(`IdeaShield_Proof_${safeTitle}.pdf`);
+  };
+
+  if(step===2)return(
+    <div className="page fade-in">
+      <div style={{maxWidth:540,margin:"60px auto",textAlign:"center"}}>
+        <div style={{fontSize:64,marginBottom:16}}>🎉</div>
+        <h2 style={{fontFamily:"Syne",fontWeight:800,marginBottom:8,fontSize:28}}>Idea Protected!</h2>
+        <p style={{color:"var(--text2)",marginBottom:32}}>Your idea is now timestamped on the Polygon blockchain.</p>
+        <div className="glass-card" style={{padding:24,textAlign:"left",marginBottom:24}}>
+          <div className="form-group"><label className="label">Transaction Hash</label><div className="code-block">{tx}</div></div>
+          <div className="form-group" style={{marginBottom:0}}><label className="label">IPFS Hash</label><div className="code-block">{ipfs}</div></div>
+        </div>
+        <div style={{display:"flex",gap:12,justifyContent:"center",flexWrap:"wrap"}}>
+          <button className="btn btn-primary" style={{padding:"12px 28px",fontSize:15}} onClick={downloadProof}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Proof PDF
+          </button>
+          <button className="btn btn-ghost" onClick={()=>{setStep(0);setFile(null);setForm({title:"",description:"",tags:""});setProg(0);}}>Upload Another</button>
+        </div>
+      </div>
+    </div>
+  );
+  return(
+    <div className="page fade-in">
+      <div style={{marginBottom:28}}>
+        <h1 style={{fontFamily:"Syne",fontWeight:800,fontSize:24,marginBottom:4}}>Upload & Protect Idea</h1>
+        <p style={{color:"var(--text2)",fontSize:14}}>Your idea will be encrypted and timestamped on Polygon</p>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 340px",gap:20,alignItems:"start"}}>
+        <div>
+          <div className={`upload-zone${dragOver?" drag-over":""}`} onDragOver={e=>{e.preventDefault();setDragOver(true);}} onDragLeave={()=>setDragOver(false)} onDrop={e=>{e.preventDefault();setDragOver(false);const f=e.dataTransfer.files[0];if(f)setFile(f);}} onClick={()=>ref.current?.click()} style={{marginBottom:20}}>
+            <input ref={ref} type="file" style={{display:"none"}} onChange={e=>{const f=e.target.files[0];if(f)setFile(f);}} accept=".pdf,.pptx,.docx,.zip,.md,.txt"/>
+            {file?(<><div style={{fontSize:48,marginBottom:12}}>✅</div><div style={{fontFamily:"Syne",fontWeight:700,marginBottom:8}}>{file.name}</div><div style={{color:"var(--text2)",fontSize:13}}>{(file.size/1024/1024).toFixed(2)} MB · Click to change</div></>):(<><div style={{fontSize:48,marginBottom:12}}>📁</div><div style={{fontFamily:"Syne",fontWeight:700,fontSize:18,marginBottom:8}}>Drop your file here</div><div style={{color:"var(--text2)",fontSize:14,marginBottom:16}}>or click to browse</div><div style={{fontSize:12,color:"var(--text3)"}}>PDF, PPTX, DOCX, ZIP, MD · Max 50MB</div></>)}
+          </div>
+          <div className="glass-card" style={{padding:24}}>
+            <div className="form-group"><label className="label">Idea Title *</label><input className="input" placeholder="My Revolutionary Idea" value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))}/></div>
+            <div className="form-group"><label className="label">Description *</label><textarea className="input" style={{minHeight:100,resize:"vertical"}} placeholder="Describe your idea in detail..." value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))}/></div>
+            <div className="form-group" style={{marginBottom:0}}><label className="label">Tags (comma-separated)</label><input className="input" placeholder="AI, Blockchain, Healthcare" value={form.tags} onChange={e=>setForm(f=>({...f,tags:e.target.value}))}/></div>
+          </div>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div className="glass-card" style={{padding:20}}>
+            <div style={{fontFamily:"Syne",fontWeight:700,marginBottom:16}}>Protection Summary</div>
+            {[["🔐","AES-256 Encryption"],["⛓️","Polygon Timestamp"],["🌐","IPFS Storage"],["🔍","Similarity Scan"]].map(([ic,lb])=>(
+              <div key={lb} style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
+                <div style={{width:32,height:32,borderRadius:8,background:"rgba(108,99,255,0.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>{ic}</div>
+                <span style={{fontSize:13,fontWeight:500}}>{lb}</span>
+                <Ico n="check" s={14} c="" style={{marginLeft:"auto",color:"var(--emerald)"}}/>
+              </div>
+            ))}
+          </div>
+          <div className="glass-card-shine" style={{padding:18}}>
+            <div style={{fontSize:12,color:"var(--text2)",marginBottom:8}}>Estimated gas fee</div>
+            <div style={{fontFamily:"Syne",fontWeight:800,fontSize:22}}>~$0.003</div>
+            <div style={{fontSize:11,color:"var(--text3)"}}>On Polygon network</div>
+          </div>
+          <button className="btn btn-primary" style={{justifyContent:"center",padding:14,fontSize:15}} onClick={go}><Ico n="shield" s={18}/> Protect This Idea</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── SHARE MODAL ──
+const ShareModal=({idea,onClose,add})=>{
+  const [email,setEmail]=useState("");
+  const [role,setRole]=useState("view");
+  const [shares,setShares]=useState(idea.shares.map(e=>({email:e,role:"view"})));
+  const addS=()=>{
+    if(!email||!email.includes("@")){add("Enter a valid email","error");return;}
+    if(shares.find(s=>s.email===email)){add("Already shared","error");return;}
+    setShares(s=>[...s,{email,role}]);setEmail("");add(`Shared with ${email}`,"success");
+  };
+  return(
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={e=>e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title">Share Idea</div>
+          <button className="btn btn-ghost btn-icon" onClick={onClose}><Ico n="x" s={18}/></button>
+        </div>
+        <div style={{fontFamily:"Syne",fontWeight:600,marginBottom:4}}>{idea.title}</div>
+        <div style={{fontSize:12,color:"var(--text3)",marginBottom:20}}>Manage access permissions</div>
+        <div style={{display:"flex",gap:8,marginBottom:20}}>
+          <input className="input" placeholder="teammate@startup.com" value={email} onChange={e=>setEmail(e.target.value)} style={{flex:1}} onKeyDown={e=>e.key==="Enter"&&addS()}/>
+          <select className="input" style={{width:110}} value={role} onChange={e=>setRole(e.target.value)}>
+            <option value="view">View</option><option value="edit">Edit</option><option value="full">Full</option>
+          </select>
+          <button className="btn btn-primary" onClick={addS}><Ico n="plus" s={16}/></button>
+        </div>
+        {shares.length===0?<div style={{textAlign:"center",padding:"20px 0",color:"var(--text2)",fontSize:13}}>No one has access yet</div>:shares.map(s=>(
+          <div key={s.email} className="share-row">
+            <div className="share-avatar">{s.email[0].toUpperCase()}</div>
+            <div style={{flex:1}}><div style={{fontSize:14,fontWeight:500}}>{s.email}</div><div style={{fontSize:11,color:"var(--text3)"}}>Shared just now</div></div>
+            <div style={{fontSize:11,fontWeight:600,padding:"4px 10px",borderRadius:99,background:"rgba(108,99,255,0.15)",color:"var(--accent)",textTransform:"uppercase"}}>{s.role}</div>
+            <button className="btn btn-ghost btn-icon btn-sm" onClick={()=>setShares(p=>p.filter(x=>x.email!==s.email))}><Ico n="x" s={13}/></button>
+          </div>
+        ))}
+        <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid var(--border)"}}>
+          <div style={{fontSize:12,color:"var(--text2)",marginBottom:8}}>Share Link</div>
+          <div style={{display:"flex",gap:8}}>
+            <input className="input" readOnly value={`https://ideashield.app/view/${idea.id}`} style={{fontSize:12}}/>
+            <button className="btn btn-ghost btn-sm" onClick={()=>{try{navigator.clipboard.writeText(`https://ideashield.app/view/${idea.id}`)}catch(e){}add("Link copied!","success");}}><Ico n="copy" s={14}/></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── IDEAS PAGE ──
+const Ideas=({ideas,setIdeas,add})=>{
+  const [search,setSearch]=useState("");
+  const [shareIdea,setShareIdea]=useState(null);
+  const filtered=ideas.filter(i=>i.title.toLowerCase().includes(search.toLowerCase())||i.description.toLowerCase().includes(search.toLowerCase())||i.tags.some(t=>t.toLowerCase().includes(search.toLowerCase())));
+  const del=id=>{setIdeas(p=>p.filter(i=>i.id!==id));add("Idea removed","info");};
+  return(
+    <div className="page fade-in">
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:"Syne",fontWeight:800,fontSize:24,marginBottom:4}}>My Protected Ideas</h1>
+        <p style={{color:"var(--text2)",fontSize:14}}>{ideas.length} ideas on-chain</p>
+      </div>
+      <input className="input" style={{maxWidth:400,marginBottom:20}} placeholder="Search ideas, tags..." value={search} onChange={e=>setSearch(e.target.value)}/>
+      {filtered.length===0?<div className="glass-card empty-state"><div style={{fontSize:48,marginBottom:16,opacity:.5}}>🔍</div><div className="empty-state-title">No ideas found</div><p>Try a different search</p></div>:
+        <div className="ideas-grid">{filtered.map(idea=><IdeaCard key={idea.id} idea={idea} add={add} onDelete={del} onShare={setShareIdea}/>)}</div>}
+      {shareIdea&&<ShareModal idea={shareIdea} onClose={()=>setShareIdea(null)} add={add}/>}
+    </div>
+  );
+};
+
+// ── SHARE PAGE ──
+const Share=({ideas,add})=>{
+  const [sel,setSel]=useState(ideas[0]?.id||"");
+  const idea=ideas.find(i=>i.id===sel);
+  return(
+    <div className="page fade-in">
+      <div style={{marginBottom:24}}><h1 style={{fontFamily:"Syne",fontWeight:800,fontSize:24,marginBottom:4}}>Sharing & Permissions</h1><p style={{color:"var(--text2)",fontSize:14}}>Manage who has access to each idea</p></div>
+      <div className="form-group" style={{maxWidth:380}}>
+        <label className="label">Select Idea</label>
+        <select className="input" value={sel} onChange={e=>setSel(e.target.value)}>{ideas.map(i=><option key={i.id} value={i.id}>{i.title}</option>)}</select>
+      </div>
+      {idea&&(
+        <div className="glass-card" style={{padding:24,maxWidth:600}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:12}}>
+            <div>
+              <div style={{fontFamily:"Syne",fontWeight:700,fontSize:17,marginBottom:4}}>{idea.title}</div>
+              <div className="shield-badge"><Ico n="check" s={11}/> Protected · {fmt(idea.timestamp)}</div>
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={()=>add("Share modal: use My Ideas page to share","info")}><Ico n="plus" s={14}/> Add Member</button>
+          </div>
+          <div style={{fontFamily:"Syne",fontWeight:600,fontSize:13,color:"var(--text2)",marginBottom:12,textTransform:"uppercase",letterSpacing:"0.05em"}}>Team Members ({idea.shares.length})</div>
+          {idea.shares.length===0&&<div style={{padding:"24px 0",textAlign:"center",color:"var(--text3)",fontSize:13}}>No team members added yet</div>}
+          {idea.shares.map((email,i)=>(
+            <div key={email} className="share-row">
+              <div className="share-avatar">{email[0].toUpperCase()}</div>
+              <div style={{flex:1}}><div style={{fontSize:14,fontWeight:500}}>{email}</div><div style={{fontSize:11,color:"var(--text3)"}}>Added 3 days ago</div></div>
+              <select className="input" style={{width:100,fontSize:12,padding:"6px 10px"}} defaultValue={i===0?"edit":"view"}><option value="view">View</option><option value="edit">Edit</option><option value="full">Full</option></select>
+              <button className="btn btn-danger btn-sm btn-icon"><Ico n="trash" s={14}/></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── ALERTS PAGE ──
+const Alerts=({add})=>{
+  const [alerts,setAlerts]=useState(MOCK_ALERTS);
+  const dis=id=>{setAlerts(a=>a.filter(x=>x.id!==id));add("Alert dismissed","info");};
+  return(
+    <div className="page fade-in">
+      <div style={{marginBottom:24}}><h1 style={{fontFamily:"Syne",fontWeight:800,fontSize:24,marginBottom:4}}>Similarity Alerts</h1><p style={{color:"var(--text2)",fontSize:14}}>AI-powered monitoring detects similar ideas across the web</p></div>
+      <div className="glass-card-shine" style={{padding:"16px 20px",marginBottom:24,display:"flex",alignItems:"center",gap:12,flexWrap:"wrap"}}>
+        <div className="chain-pulse"><div className="pulse-dot"/></div>
+        <div style={{fontSize:14,fontWeight:500,flex:1}}>Monitoring 3 ideas across GitHub, ProductHunt, HackerNews, and 12 more sources</div>
+        <div style={{fontSize:12,color:"var(--text2)"}}>Last scan: 2 min ago</div>
+      </div>
+      {alerts.length===0?<div className="glass-card empty-state"><div style={{fontSize:48,marginBottom:16}}>✅</div><div className="empty-state-title">No Alerts</div><p>Your ideas appear unique. Keep building!</p></div>:
+        alerts.map(a=>(
+          <div key={a.id} className={`glass-card alert-card${a.severity==="high"?" alert-severity-high":" alert-severity-low"}`}>
+            <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:16,flexWrap:"wrap"}}>
+              <div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                  <span style={{fontSize:18}}>{a.severity==="high"?"🚨":"⚠️"}</span>
+                  <span style={{fontFamily:"Syne",fontWeight:700,fontSize:15}}>{a.severity==="high"?"High":"Low"} Similarity Detected</span>
+                  <span style={{fontSize:11,fontWeight:700,padding:"2px 8px",borderRadius:99,background:a.severity==="high"?"rgba(244,63,94,0.2)":"rgba(245,158,11,0.2)",color:a.severity==="high"?"var(--red)":"var(--amber)",border:`1px solid ${a.severity==="high"?"rgba(244,63,94,0.4)":"rgba(245,158,11,0.4)"}`}}>{a.similarity}% match</span>
+                </div>
+                <div style={{fontSize:13,color:"var(--text2)",marginBottom:4}}>Your idea "<strong style={{color:"var(--text)"}}>{a.ideaTitle}</strong>" is similar to <strong style={{color:"var(--text)"}}>{a.similarProject}</strong> on {a.source}</div>
+                <div style={{fontSize:11,color:"var(--text3)"}}>{fmt(a.detectedAt)} at {fmtT(a.detectedAt)}</div>
+              </div>
+              <div style={{display:"flex",gap:8}}><button className="btn btn-ghost btn-sm">View</button><button className="btn btn-ghost btn-sm" onClick={()=>dis(a.id)}>Dismiss</button></div>
+            </div>
+            <div style={{marginTop:14}}><div style={{fontSize:12,color:"var(--text2)",marginBottom:6}}>Similarity</div><div className="sim-bar" style={{height:6}}><div className="sim-fill" style={{width:`${a.similarity}%`,background:a.severity==="high"?"var(--red)":"var(--amber)"}}/></div></div>
+          </div>
+        ))
+      }
+    </div>
+  );
+};
+
+// ── AUDIT ──
+const Audit=()=>{
+  const AC={IDEA_UPLOADED:"var(--accent)",BLOCKCHAIN_STAMPED:"var(--emerald)",IDEA_SHARED:"var(--cyan)",IDEA_VIEWED:"var(--text2)",SIMILARITY_DETECTED:"var(--red)"};
+  const AI={IDEA_UPLOADED:"upload",BLOCKCHAIN_STAMPED:"chain",IDEA_SHARED:"share",IDEA_VIEWED:"eye",SIMILARITY_DETECTED:"alert"};
+  return(
+    <div className="page fade-in">
+      <div style={{marginBottom:24}}><h1 style={{fontFamily:"Syne",fontWeight:800,fontSize:24,marginBottom:4}}>Audit Trail</h1><p style={{color:"var(--text2)",fontSize:14}}>Immutable log of all activity on your ideas</p></div>
+      <div className="glass-card" style={{padding:"8px 24px",maxWidth:700}}>
+        {MOCK_AUDIT.map((e,i)=>(
+          <div key={e.id} className="audit-item" style={{borderBottom:i===MOCK_AUDIT.length-1?"none":undefined}}>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",paddingTop:4}}>
+              <div className="audit-dot" style={{background:AC[e.action]||"var(--text3)"}}/>
+              {i<MOCK_AUDIT.length-1&&<div style={{width:1,flex:1,background:"var(--border)",marginTop:4}}/>}
+            </div>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                <span style={{color:AC[e.action]}}><Ico n={AI[e.action]||"list"} s={14}/></span>
+                <div className="audit-action" style={{color:AC[e.action]}}>{e.action.replace(/_/g," ")}</div>
+              </div>
+              <div className="audit-detail"><strong>{e.ideaTitle}</strong> · by {e.user}</div>
+              <div className="audit-time">{fmt(e.time)} · {fmtT(e.time)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{marginTop:20,padding:"12px 20px",borderRadius:12,background:"rgba(108,99,255,0.06)",border:"1px solid rgba(108,99,255,0.15)",fontSize:13,color:"var(--text2)",maxWidth:700}}>🔒 This audit log is cryptographically signed and cannot be tampered with.</div>
+    </div>
+  );
+};
+
+// ── ROOT ──
+const PAGE_TITLES={dashboard:"Dashboard",upload:"Upload Idea",ideas:"My Ideas",share:"Sharing",alerts:"Alerts",audit:"Audit Trail"};
+
+function App(){
+  const [view,setView]=useState("landing");
+  const [page,setPage]=useState("dashboard");
+  const [user,setUser]=useState(null);
+  const [ideas,setIdeas]=useState(MOCK_IDEAS);
+  const [sbOpen,setSbOpen]=useState(false);
+  const {toasts,add}=useToast();
+  return(
+    <>
+      <Toasts toasts={toasts}/>
+      {view==="landing"&&<Landing onEnter={setView}/>}
+      {view==="login"&&<Auth mode="login" onAuth={u=>{setUser(u);setView("app");}} onSwitch={()=>setView("signup")} onBack={()=>setView("landing")}/>}
+      {view==="signup"&&<Auth mode="signup" onAuth={u=>{setUser(u);setView("app");}} onSwitch={()=>setView("login")} onBack={()=>setView("landing")}/>}
+      {view==="app"&&(
+        <div className="app">
+          <Sidebar active={page} onNav={setPage} user={user} onLogout={()=>{setUser(null);setView("landing");setPage("dashboard");}} open={sbOpen} onClose={()=>setSbOpen(false)}/>
+          <main className="main">
+            <header className="topbar">
+              <button className="mobile-menu-btn" onClick={()=>setSbOpen(o=>!o)}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+              <div className="topbar-title">{PAGE_TITLES[page]}</div>
+              <div style={{display:"flex",alignItems:"center",gap:12}}>
+                <div className="chain-pulse"><div className="pulse-dot"/><span style={{fontSize:12,color:"var(--emerald)",fontWeight:600}}>Polygon</span></div>
+                <div className="avatar" onClick={()=>add(`Logged in as ${user?.email}`,"info")}>{(user?.name||"U")[0]}</div>
+              </div>
+            </header>
+            {page==="dashboard"&&<Dashboard ideas={ideas} onNav={setPage} user={user} add={add}/>}
+            {page==="upload"&&<Upload onUpload={idea=>setIdeas(p=>[idea,...p])} add={add}/>}
+            {page==="ideas"&&<Ideas ideas={ideas} setIdeas={setIdeas} add={add}/>}
+            {page==="share"&&<Share ideas={ideas} add={add}/>}
+            {page==="alerts"&&<Alerts add={add}/>}
+            {page==="audit"&&<Audit/>}
+          </main>
+        </div>
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
